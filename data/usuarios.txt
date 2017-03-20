@@ -1,0 +1,3 @@
+default admin login credentials
+user: admin
+pwd: admin 

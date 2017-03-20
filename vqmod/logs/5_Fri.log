@@ -1,0 +1,14 @@
+---------- Date: 2016-04-22 15:49:22 ~ IP : ::1 ----------
+REQUEST URI : /opencart/index.php?route=product/category&path=57
+MOD DETAILS:
+   modFile   : C:\wamp\www\opencart\vqmod/xml/vqmod_opencart_changes.xml
+   id        : Changes and Fixes for OpenCart v2.2.0.x
+   version   : 1.0.4
+   vqmver    : 2.6.2
+   author    : Ralph James - Randem Systems
+
+File Name    : system/config/catalog.php(0)
+VQModObject::applyMod - SEARCH NOT FOUND (ABORTING MOD): return $this->load->view($this->config->get('config_template') . '/template/payment/authorizenet_sim', $data);
+----------------------------------------------------------------------
+
+

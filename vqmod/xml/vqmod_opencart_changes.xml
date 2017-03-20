@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+        <id>Changes and Fixes for OpenCart v2.2.0.x</id>
+        <version>1.0.4</version>
+        <vqmver>2.6.2</vqmver>
+        <author>Ralph James - Randem Systems</author>
+
+//=======================================================================================================================
+// RJ - 20160306 - Force Admin to SSL
+// Fix: Force Admin to SSL - 20160306 - daniGo  - v1.0.0
+//=======================================================================================================================
+
+	<file name="system/config/catalog.php">
+		<operation error="abort"> 
+		   <search position="replace"><![CDATA[$_['site_ssl']         = false;]]></search>
+			<add><![CDATA[$_['site_ssl']         = true;]]></add>
+		</operation>
+
+	</file>
+
+	<file name="system/config/admin.php">
+		<operation error="abort"> 
+		   <search position="replace"><![CDATA[$_['site_ssl']          = false;]]></search>
+			<add><![CDATA[$_['site_ssl']         = true;]]></add>
+		</operation>
+
+	</file>
+
+	<file name="system/config/default.php">
+		<operation error="abort"> 
+		   <search position="replace"><![CDATA[$_['site_ssl']             = false;]]></search>
+			<add><![CDATA[$_['site_ssl']         = true;]]></add>
+		</operation>
+
+	</file>
+
+	<file name="system/config/install.php">
+		<operation error="abort"> 
+		   <search position="replace"><![CDATA[$_['site_ssl']          = false;]]></search>
+			<add><![CDATA[$_['site_ssl']         = true;]]></add>
+		</operation>
+
+	</file>
+
+
+//=======================================================================================================================
+// RJ - 20160115  - Force store URL's to be terminated properly and URL's to be secure if selected to be
+// this is done at the time the store is saved
+// Fix: Force URL's in store to be terminated properly with a trailing slash or any store without trailing slash will default 
+// to main store. Force HTTPS protocol to HTTPS if SSL is selected in store settings - 20160116 - v1.0.3
+//=======================================================================================================================
+
+// RJ - 20160115 - Start - Make sure store URL's are terminated properly
+
+	<file name="admin/model/setting/setting.php">
+		<operation error="abort">
+			<search position="after"><![CDATA[if (substr($key, 0, strlen($code)) == $code) {]]></search>
+			<add><![CDATA[
+			if (($this->db->escape($key) == 'config_url') || ($this->db->escape($key) == 'config_ssl')){
+				
+				// Terminate URL correctly
+				
+				if (substr($value,strlen($value)-1,1) != '/') {
+					$value = $value . '/';
+				}																
+
+				// Force protocol to secure if secure has been selected
+				
+				if ($data['config_secure'] == '1') {
+        			$value = $this->replaceProtocol($value, 'https://');
+				}
+			 
+				// update local variables and update store table
+
+				$data[$key] = $value;
+				$this->UpdateStore((int)$store_id,$data);
+			}
+
+// RJ - 20160115 - End
+
+]]></add>
+		</operation>
+		
+         <operation>
+           <search position="bottom" offset="2"></search>
+             <add><![CDATA[
+             
+   function removeProtocol($URL) {  // RJ-20141213 - Remove protocols from URL
+		$newURL = $URL;
+		$offset = strpos($URL,'://');
+		if ($offset){
+			$newURL = substr($URL,$offset + 3);
+		}
+		$newURL = str_replace('www.', '', $newURL);
+		$newURL = str_replace('//', '/', $newURL);	// Make sure no double slashes are in url (at end))
+		return $newURL;
+   }
+
+   function replaceProtocol($URL, $protocol) {  // RJ-20141213 - add secure protocol to URL
+	   	$newURL = $this->removeProtocol($URL);                        	  
+	   	$newURL = $protocol . $newURL;
+	   	if (substr($newURL,-1,1) != '/') {
+	   		$newURL .= '/';
+	   	}
+	   	return $newURL;
+   }
+        
+	function UpdateStore($store_id, $data) {
+		$this->db->query("UPDATE " . DB_PREFIX . "store SET name = '" . $this->db->escape($data['config_name']) . "', `url` = '" . $this->db->escape($data['config_url']) . "', `ssl` = '" . $this->db->escape($data['config_ssl']) . "' WHERE store_id = '" . (int)$store_id . "'");
+
+		$this->cache->delete('store');
+	}
+        ]]></add>
+        </operation>
+				
+	</file>
+
+//=======================================================================================================================
+// RJ - 20160123  - Allow featured products to be rearranged - Author: Tri Le (9/2/2015)
+// Add: Rearrange Featured Products - Tri Le - 20150902 - v1.0.2
+//=======================================================================================================================
+
+  <file name="admin/view/template/module/featured.tpl">
+    <operation>
+      <search><![CDATA[<?php echo $footer; ?>]]></search>
+      <add position="before"><![CDATA[
+<!--tri mod start-->
+<style type="text/css">
+.odd, .even {background:#EFEFEF !important; margin:2px;}
+.ui-sortable-handle {cursor: pointer;}
+</style>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script type="text/javascript">
+$(function() {
+  $('#featured-product').css({'height':'auto', 'overflow':'auto'}).before('Click and drag to reorder product');
+  $('#featured-product').sortable();
+});
+</script>
+<!--tri mod end-->
+      ]]></add>
+    </operation>
+  </file>
+  
+//=======================================================================================================================
+// Me - Change Powered by text in footer 
+//=======================================================================================================================
+	
+	<file name="catalog/controller/common/footer.php">
+	   <operation error="skip" info="Replace the powered by footer link">
+		   <search position="replace"><![CDATA[$data['powered'] = sprintf($this->language->get('text_powered'), $this->config->get('config_name'), date('Y', time()));]]></search>
+		   <add><![CDATA[$data['powered'] = sprintf('%s &copy; %s', $this->config->get('config_name'), date('Y', time()));]]></add>
+	   </operation>
+    </file>
+	
+</modification>

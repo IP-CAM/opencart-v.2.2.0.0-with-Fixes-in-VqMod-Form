@@ -1,0 +1,75 @@
+# Default value for Options is FollowSymlinks. Set Options to None and enable specific options as needed 
+# (!) Mixing Options with a + or - with those without is not valid syntax and is likely to cause unexpected results.
+Options None
+ 
+# Prevent Direct Access to files
+<FilesMatch "\.(tpl|ini|log)">
+	Order deny,allow
+	Deny from all
+</FilesMatch>
+
+# # REWRITES  
+
+# * Rewrite engine: condition and rules  
+
+<IfModule mod_rewrite.c>
+
+    # Enable the 'FollowSymlinks' option. It's needed for per-directory rewrite rules
+    Options +FollowSymlinks
+	
+    # Turn on the rewrite engine
+    RewriteEngine On
+	
+	RewriteCond %{HTTPS} =on
+    RewriteRule ^ - [env=proto:https]
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ - [env=proto:http]
+
+    # Forcing 'https://'
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^(.*) https://%{HTTP_HOST}/opencart/$1 [R=301,L]
+	
+	# Suppressing 'www.' at the beginning of FQDNs: rewrite www.example.com → example.com
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^ %{ENV:PROTO}://%1%{REQUEST_URI} [R=301,L]
+
+	# * SEO URL Settings
+
+	# If your opencart installation does not run on the main web folder but runs in /shop/ make sure you change  
+	# RewriteBase /  to become RewriteBase /shop/
+
+	#RewriteBase /
+	#RewriteRule ^sitemap.xml$ index.php?route=feed/google_sitemap [L]
+	#RewriteRule ^googlebase.xml$ index.php?route=feed/google_base [L]
+	#RewriteRule ^download/(.*) /index.php?route=error/not_found [L]
+	#RewriteCond %{REQUEST_FILENAME} !-f
+	#RewriteCond %{REQUEST_FILENAME} !-d
+	#RewriteCond %{REQUEST_URI} !.*\.(ico|gif|jpg|jpeg|png|js|css)
+	#RewriteRule ^([^?]*) index.php?_route_=$1 [L,QSA]
+	
+</IfModule>
+
+### Additional Settings that may need to be enabled for some servers
+### Uncomment the commands by removing the # sign in front of it.
+### If you get an "Internal Server Error 500" after enabling any of the following settings, restore the # as this means your host doesn't allow that.
+
+# 1. If your cart only allows you to add one item at a time, it is possible register_globals is on. This may work to disable it:
+# php_flag register_globals off
+
+# 2. If your cart has magic quotes enabled, This may work to disable it:
+# php_flag magic_quotes_gpc Off
+
+# 3. Set max upload file size. Most hosts will limit this and not allow it to be overridden but you can try
+# php_value upload_max_filesize 999M
+
+# 4. set max post size. uncomment this line if you have a lot of product options or are getting errors where forms are not saving all fields
+# php_value post_max_size 999M
+
+# 5. set max time script can take. uncomment this line if you have a lot of product options or are getting errors where forms are not saving all fields
+# php_value max_execution_time 200
+
+# 6. set max time for input to be recieved. Uncomment this line if you have a lot of product options or are getting errors where forms are not saving all fields
+# php_value max_input_time 200
+
+# 7. disable open_basedir limitations
+# php_admin_value open_basedir none
